@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Jurnal Penyesuaian Interaktif</title>
+    <style>
+        /* Palet Warna */
+        :root {
+            --cream-bg: #FDFBF7;
+            --cream-card: #F5F5DC;
+            --green-primary: #2E8B57;
+            --green-hover: #3CB371;
+            --green-light: #d1e7dd;
+            --red-accent: #D32F2F;
+            --red-light: #f8d7da;
+            --text-dark: #2C3E50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--cream-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .quiz-wrapper {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--cream-card);
+            border-top: 6px solid var(--green-primary);
+            border-bottom: 6px solid var(--red-accent);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--green-primary);
+            text-align: center;
+            border-bottom: 2px dashed var(--red-accent);
+            padding-bottom: 15px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .progress-text {
+            text-align: right;
+            font-weight: bold;
+            color: var(--green-primary);
+            margin-bottom: 10px;
+        }
+
+        .question-card {
+            background-color: #FFFFFF;
+            padding: 25px;
+            border-left: 5px solid var(--green-primary);
+            border-radius: 4px 8px 8px 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-weight: 600;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .options li {
+            background-color: var(--cream-bg);
+            border: 2px solid #E0E0E0;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .options li:hover:not(.disabled) {
+            background-color: var(--green-light);
+            border-color: var(--green-hover);
+        }
+
+        .options li.correct {
+            background-color: var(--green-primary) !important;
+            color: #FFFFFF;
+            border-color: var(--green-primary) !important;
+        }
+
+        .options li.wrong {
+            background-color: var(--red-accent) !important;
+            color: #FFFFFF;
+            border-color: var(--red-accent) !important;
+        }
+
+        .options li.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Kotak Pembahasan */
+        .feedback-box {
+            display: none;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            animation: fadeIn 0.5s;
+        }
+
+        .feedback-box.success {
+            background-color: var(--green-light);
+            border-left: 5px solid var(--green-primary);
+            color: #0f5132;
+        }
+
+        .feedback-box.error {
+            background-color: var(--red-light);
+            border-left: 5px solid var(--red-accent);
+            color: #842029;
+        }
+
+        .btn {
+            display: none;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--green-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--green-hover);
+        }
+
+        /* Layar Hasil & Kesimpulan */
+        #resultScreen {
+            display: none;
+        }
+
+        .final-score {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+        }
+
+        .conclusion-box {
+            background-color: var(--green-primary);
+            color: #FFFFFF;
+            padding: 25px;
+            border-radius: 8px;
+            border-right: 8px solid var(--red-accent);
+            text-align: center;
+        }
+
+        .conclusion-box h2 {
+            margin-top: 0;
+            color: var(--cream-card);
+            border-bottom: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-wrapper">
+        <h1>Kuis Jurnal Penyesuaian</h1>
+        
+        <!-- Area Kuis Berjalan -->
+        <div id="quizScreen">
+            <div class="progress-text" id="progressText">Soal 1 dari 5</div>
+            
+            <div class="question-card">
+                <div class="question-text" id="questionText">Memuat pertanyaan...</div>
+                <ul class="options" id="optionsList">
+                    <!-- Opsi akan di-generate oleh JS -->
+                </ul>
+            </div>
+
+            <div class="feedback-box" id="feedbackBox"></div>
+
+            <button class="btn" id="nextBtn" onclick="nextQuestion()">Soal Selanjutnya ➔</button>
+        </div>
+
+        <!-- Area Hasil Akhir -->
+        <div id="resultScreen">
+            <div class="final-score" id="finalScoreText">Skor Anda: 0/100</div>
+            
+            <div class="conclusion-box">
+                <h2>Kesimpulan</h2>
+                <p>Jurnal penyesuaian adalah nyawa dari prinsip dasar akuntansi yaitu <strong>accrual basis</strong> dan <strong>matching concept</strong>. Tanpa jurnal penyesuaian, laporan keuangan tidak akan menunjukkan saldo yang sebenarnya—pendapatan atau beban bisa jadi diakui terlalu besar atau terlalu kecil (<em>overstated/understated</em>). Dengan menguasai lima skenario di atas, Anda telah memegang kunci utama penyusunan siklus akuntansi perusahaan jasa yang akurat.</p>
+            </div>
+            
+            <button class="btn" style="display: block; margin-top: 20px;" onclick="location.reload()">Mulai Ulang Kuis</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "Saldo akun Perlengkapan di Neraca Saldo menunjukkan Rp2.500.000. Pada akhir periode, sisa perlengkapan yang masih ada di gudang bernilai Rp700.000. Bagaimana jurnal penyesuaiannya?",
+                options: [
+                    { text: "Beban Perlengkapan Rp700.000 (D) | Perlengkapan Rp700.000 (K)", isCorrect: false, feedback: "Salah. Rp700.000 adalah nilai perlengkapan yang TERSISA, bukan yang terpakai. Jurnal penyesuaian harus mencatat nilai yang sudah menjadi beban (terpakai)." },
+                    { text: "Beban Perlengkapan Rp1.800.000 (D) | Perlengkapan Rp1.800.000 (K)", isCorrect: true, feedback: "Benar! Nilai yang terpakai adalah Rp2.500.000 - Rp700.000 = Rp1.800.000. Nilai inilah yang diakui sebagai beban dan mengurangi saldo perlengkapan." },
+                    { text: "Perlengkapan Rp1.800.000 (D) | Beban Perlengkapan Rp1.800.000 (K)", isCorrect: false, feedback: "Salah. Posisinya terbalik. Beban harus di Debit karena bertambah, dan aset Perlengkapan di Kredit karena berkurang." },
+                    { text: "Perlengkapan Rp700.000 (D) | Kas Rp700.000 (K)", isCorrect: false, feedback: "Salah. Jurnal penyesuaian di akhir periode sangat jarang melibatkan akun Kas. Transaksi ini adalah pengakuan beban, bukan pembelian baru." }
+                ]
+            },
+            {
+                question: "Perusahaan membayar sewa ruko untuk 1 tahun ke depan sebesar Rp12.000.000 pada tanggal 1 Agustus dan dicatat sebagai 'Sewa Dibayar Dimuka'. Pada 31 Desember, berapakah beban sewa yang harus diakui?",
+                options: [
+                    { text: "Rp4.000.000", isCorrect: false, feedback: "Salah. Ini adalah hitungan untuk 4 bulan. Coba hitung lagi dari 1 Agustus hingga 31 Desember (Agustus ikut dihitung penuh)." },
+                    { text: "Rp5.000.000", isCorrect: true, feedback: "Tepat! Dari 1 Agustus ke 31 Desember adalah 5 bulan. Perhitungannya: (5/12) x Rp12.000.000 = Rp5.000.000. Inilah sewa yang sudah jatuh tempo dan menjadi beban." },
+                    { text: "Rp7.000.000", isCorrect: false, feedback: "Salah. Rp7.000.000 adalah sisa sewa untuk tahun depan (7 bulan), bukan beban sewa untuk tahun ini." },
+                    { text: "Rp12.000.000", isCorrect: false, feedback: "Salah. Rp12.000.000 adalah total sewa untuk 1 tahun penuh. Hingga Desember, ruko baru dipakai sebagian." }
+                ]
+            },
+            {
+                question: "Pada 1 November, perusahaan menerima pembayaran Rp6.000.000 untuk layanan 3 bulan dan dicatat sebagai 'Pendapatan Diterima Dimuka'. Pada 31 Desember, jurnal penyesuaian yang benar adalah...",
+                options: [
+                    { text: "Pendapatan Diterima Dimuka Rp4.000.000 (D) | Pendapatan Jasa Rp4.000.000 (K)", isCorrect: true, feedback: "Benar sekali! Layanan yang sudah diselesaikan adalah 2 bulan (Nov, Des). Jadi, (2/3) x Rp6.000.000 = Rp4.000.000. Kewajiban (diterima dimuka) berkurang di Debit, Pendapatan bertambah di Kredit." },
+                    { text: "Pendapatan Jasa Rp4.000.000 (D) | Pendapatan Diterima Dimuka Rp4.000.000 (K)", isCorrect: false, feedback: "Salah. Posisinya terbalik. Jika diakui sebagai pendapatan, akun Pendapatan harus berada di sisi Kredit." },
+                    { text: "Pendapatan Diterima Dimuka Rp2.000.000 (D) | Pendapatan Jasa Rp2.000.000 (K)", isCorrect: false, feedback: "Salah. Rp2.000.000 adalah sisa layanan untuk 1 bulan ke depan (Januari), bukan pendapatan yang sudah menjadi hak perusahaan di tahun ini." },
+                    { text: "Kas Rp6.000.000 (D) | Pendapatan Jasa Rp6.000.000 (K)", isCorrect: false, feedback: "Salah. Kas sudah dicatat saat uang diterima pada tanggal 1 November. Jurnal penyesuaian digunakan untuk menyesuaikan kewajiban menjadi pendapatan." }
+                ]
+            },
+            {
+                question: "Gaji karyawan dibayarkan setiap hari Sabtu untuk 6 hari kerja (Senin-Sabtu) sebesar Rp3.000.000. Jika tanggal 31 Desember jatuh pada hari Rabu, jurnal penyesuaiannya adalah...",
+                options: [
+                    { text: "Beban Gaji Rp1.500.000 (D) | Utang Gaji Rp1.500.000 (K)", isCorrect: true, feedback: "Sempurna! Karyawan sudah bekerja 3 hari (Senin, Selasa, Rabu) namun belum dibayar. Maka: (3/6) x Rp3.000.000 = Rp1.500.000. Diakui sebagai Beban (D) dan Utang (K)." },
+                    { text: "Beban Gaji Rp3.000.000 (D) | Kas Rp3.000.000 (K)", isCorrect: false, feedback: "Salah. Pertama, gajinya belum dibayarkan secara tunai sampai hari Sabtu nanti (bukan Kas). Kedua, nilainya hanya untuk 3 hari kerja, bukan 1 minggu penuh." },
+                    { text: "Utang Gaji Rp1.500.000 (D) | Beban Gaji Rp1.500.000 (K)", isCorrect: false, feedback: "Salah. Posisinya terbalik. Beban bertambah di sisi Debit, sedangkan Utang bertambah di sisi Kredit." },
+                    { text: "Tidak perlu jurnal penyesuaian", isCorrect: false, feedback: "Salah. Menurut prinsip akrual, beban harus diakui pada periode terjadinya, meskipun uang kasnya belum dibayarkan." }
+                ]
+            },
+            {
+                question: "Peralatan kantor dibeli seharga Rp20.000.000. Penyusutan ditetapkan 10% per tahun. Jurnal penyesuaian untuk mencatat penyusutan tahun tersebut adalah...",
+                options: [
+                    { text: "Beban Penyusutan Peralatan Rp20.000.000 (D) | Akum. Penyusutan Rp20.000.000 (K)", isCorrect: false, feedback: "Salah. Rp20.000.000 adalah nilai perolehannya, bukan beban penyusutannya. Anda lupa mengalikannya dengan tarif 10%." },
+                    { text: "Beban Penyusutan Peralatan Rp2.000.000 (D) | Peralatan Rp2.000.000 (K)", isCorrect: false, feedback: "Hampir benar, tapi salah akun! Penyusutan aset tetap (selain aset tak berwujud) tidak boleh mengurangi akun asetnya secara langsung, melainkan harus menggunakan akun kontra yaitu 'Akumulasi Penyusutan'." },
+                    { text: "Beban Penyusutan Rp2.000.000 (D) | Akumulasi Penyusutan Rp2.000.000 (K)", isCorrect: true, feedback: "Benar! 10% dari Rp20.000.000 = Rp2.000.000. Dicatat sebagai Beban Penyusutan (D) dan Akumulasi Penyusutan (K) untuk menjaga nilai historis aset." },
+                    { text: "Akumulasi Penyusutan Rp2.000.000 (D) | Beban Penyusutan Rp2.000.000 (K)", isCorrect: false, feedback: "Salah. Posisinya terbalik. Beban selalu bertambah di Debit, dan Akumulasi (akun kontra aset) bertambah di Kredit." }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const questionText = document.getElementById("questionText");
+        const optionsList = document.getElementById("optionsList");
+        const feedbackBox = document.getElementById("feedbackBox");
+        const nextBtn = document.getElementById("nextBtn");
+        const progressText = document.getElementById("progressText");
+        
+        const quizScreen = document.getElementById("quizScreen");
+        const resultScreen = document.getElementById("resultScreen");
+        const finalScoreText = document.getElementById("finalScoreText");
+
+        function loadQuestion() {
+            // Reset state
+            feedbackBox.style.display = "none";
+            nextBtn.style.display = "none";
+            optionsList.innerHTML = "";
+            feedbackBox.className = "feedback-box"; 
+
+            const currentData = quizData[currentQuestionIndex];
+            progressText.innerText = `Soal ${currentQuestionIndex + 1} dari ${quizData.length}`;
+            questionText.innerText = currentData.question;
+
+            currentData.options.forEach((option, index) => {
+                const li = document.createElement("li");
+                li.innerText = option.text;
+                li.onclick = () => selectOption(li, option);
+                optionsList.appendChild(li);
+            });
+        }
+
+        function selectOption(selectedLi, optionData) {
+            // Jika sudah diklik sebelumnya, abaikan
+            if (selectedLi.classList.contains("disabled")) return;
+
+            // Nonaktifkan semua pilihan
+            const allOptions = optionsList.querySelectorAll("li");
+            allOptions.forEach(li => li.classList.add("disabled"));
+
+            // Cek benar atau salah
+            if (optionData.isCorrect) {
+                selectedLi.classList.add("correct");
+                feedbackBox.classList.add("success");
+                feedbackBox.innerHTML = "<strong>✅ Tepat Sekali!</strong><br>" + optionData.feedback;
+                score += 20; // Tambah skor
+            } else {
+                selectedLi.classList.add("wrong");
+                feedbackBox.classList.add("error");
+                feedbackBox.innerHTML = "<strong>❌ Kurang Tepat.</strong><br>" + optionData.feedback;
+                
+                // Cari dan tunjukkan mana yang benar
+                quizData[currentQuestionIndex].options.forEach((opt, idx) => {
+                    if(opt.isCorrect) {
+                        allOptions[idx].classList.add("correct");
+                    }
+                });
+            }
+
+            // Tampilkan feedback dan tombol next
+            feedbackBox.style.display = "block";
+            
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.innerText = "Lihat Hasil Akhir 🏆";
+            }
+            nextBtn.style.display = "block";
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.style.display = "none";
+            resultScreen.style.display = "block";
+            
+            // Variasi teks hasil berdasarkan skor
+            let emoji = "🌟";
+            let message = "";
+            if(score === 100) { message = "Sempurna!"; emoji = "🏆"; }
+            else if(score >= 60) { message = "Kerja Bagus!"; emoji = "👍"; }
+            else { message = "Jangan Menyerah, Pelajari Lagi!"; emoji = "📚"; }
+
+            finalScoreText.innerHTML = `${message}<br>Skor Anda: ${score} / 100 ${emoji}`;
+        }
+
+        // Load soal pertama saat web dibuka
+        loadQuestion();
+    </script>
+</body>
+</html>
